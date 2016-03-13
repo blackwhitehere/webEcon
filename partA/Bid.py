@@ -2,10 +2,14 @@
 
 class Bid:
     'represents a bid in a Sponsored Search Auction'
-    value = 0.0  # the value to this bidder of a click
-    name = ""  # the name of this bidder
+
+    def calc_cpc(self, value, ctr):
+        self.cpc = value/ctr
 
     def __init__(self, line):
+        self.cpc = 0.0
+        self.value = 0.0  # the value to this bidder of a click
+        self.name = ""  # the name of this bidder
         if line is not None:
             self.value = float(line.split('\t')[0])
             self.name = line.split('\t')[1]

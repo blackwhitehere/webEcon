@@ -13,7 +13,7 @@ reads a file, constructs an Auction from it,
 
 
 def runAndPrint(filename):
-    print ("loading Auction from file %s" % filename)
+    print("loading Auction from file %s" % filename)
     count = 0
     slots = []
     bids = []
@@ -32,40 +32,42 @@ def runAndPrint(filename):
                 bid = Bid(line)
                 bids.append(bid)
 
-    print ("Auction for \"%s\" with %d slots and %d bidders" % (term, len(slots), len(bids)))
+    print("Auction for \"%s\" with %d slots and %d bidders" % (term, len(slots), len(bids)))
 
     for slot in slots:
         print("slot: %6.2f %8.2f %8.2f   %s" % (
-        float(slot.clickThruRate), float(slot.price), float(slot.profit), slot.bidder))
-    print ("  <-- click through rates")
+            float(slot.clickThruRate), float(slot.price), float(slot.profit), slot.bidder))
+    print("  <-- click through rates")
     print(" ")
 
     auction = Auction(term, bids)
-    #print ([bid.value for bid in auction.bids])
+    # print ([bid.value for bid in auction.bids])
     for b in auction.bids:
         # print ("%s\t%s"%(b.value,b.name))
-        print ("bid:%6.2f %s" % (float(b.value), b.name))
+        print("bid:%6.2f %s" % (float(b.value), b.name))
 
     auction.executeVCG(slots)
     print(" ")
-    print("%12s %8s %8s %8s\n" % ("clicks", "price", "profit", "bidder"))
+    print("%12s %6s %6s %6s %6s\n" % ("clicks", "win_bid", "price", "profit", "bidder"))
     for slot in slots:
-        print("slot: %6.2f %8.2f %8.2f   %s" % (
-        float(slot.clickThruRate), float(slot.price), float(slot.profit), slot.bidder))
+        print("slot: %6.3f %6.3f %6.3f %6.3f %s" % (
+            float(slot.clickThruRate), float(slot.win_bid), float(slot.price), float(slot.profit), slot.bidder))
     cls = 0;
+    bid = 0;
     rev = 0;
     val = 0;
     for s in slots:
         cls += float(s.clickThruRate);
+        bid += float(s.win_bid)
         rev += float(s.price);
         val += float(s.profit);
-    print ("sums: %6.2f %8.2f %8.2f\n" % (cls, rev, val))
+    print("sums: %6.3f %6.3f %6.3f %6.3f\n" % (cls, bid, rev, val))
 
 
 if __name__ == '__main__':
-    runAndPrint("burgers.data.txt")
+    # runAndPrint("burgers.data.txt")
     # runAndPrint("etaMeson.data.txt")
     # runAndPrint("bicycleParts.data.txt")
     # runAndPrint("bicyclePartsDup.data.txt")
     # runAndPrint("jewelers5.data.txt")
-    # runAndPrint("jewelers8.data.txt")
+     runAndPrint("jewelers8.data.txt")
