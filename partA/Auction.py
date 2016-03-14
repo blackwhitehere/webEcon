@@ -12,7 +12,6 @@ class Auction:
 
         for b in bids1:
             j = 0
-            print(len(self.bids))
             while j < len(self.bids) and float(b.value) < float(self.bids[j].value):
                 j += 1
             self.bids.insert(j, b)  # sorts bids from highest to lowest
@@ -35,39 +34,31 @@ class Auction:
                 slot.win_bid = self.bids[key].value
 
             # calculate lost ctr for all slots with successive slot
-            if key < len(slots)-1:
+            if key < len(slots) - 1:
                 slot.calc_lost_ctr(slots[key + 1].clickThruRate)
-
-        # in case there are more slots than bids:
-        if len(slots) > len(self.bids):
-            # set lost ctr of last bidder to 0, since he did not harm anybody
-            slots[len(self.bids)-1].lost_ctr = 0.0
-
-        if len(slots) < len(self.bids):
-            # set lost ctr of last bidder to ctr of last slot
-            slots[len(slots)-1].lost_ctr = slots[len(slots)-1].clickThruRate
 
         for key, bid in enumerate(self.bids):
             # calculate cpc for all bidders who got a slot:
             if key < len(slots) - 1:
                 bid.calc_cpc(slots[key+1].win_bid, slots[key + 1].clickThruRate)
 
+        # in case there are more slots than bids:
         if len(slots) > len(self.bids):
-            # last bidder does not have a bidder cpc of which can be used to compute vcg price
-            self.bids[len(slots)-1].cpc = 0.0
+            # set lost_ctr of last bidder to 0, since he did not harm anybody
+            slots[len(self.bids)-1].lost_ctr = 0.0
+            # last bidder does not have a bidder cpc that can be used to compute vcg price
+            self.bids[len(self.bids)-1].cpc = 0.0
 
+        # in case there are more/equal bidders than slots:
         if len(slots) < len(self.bids):
+            # set lost_ctr of last slot to ctr of last slot
+            slots[len(slots)-1].lost_ctr = slots[len(slots)-1].clickThruRate
             # last successful bidder has cpc that of a first bidder who did no get a spot
             self.bids[len(slots)-1].calc_cpc(self.bids[len(slots)].value, slots[len(slots)-1].clickThruRate)
 
-        price_pass = [slot.lost_ctr*self.bids[key].cpc for key, slot in enumerate(slots)]
+        price_pass = [slot.lost_ctr*self.bids[key].cpc for key, slot in enumerate(slots) if key < len(self.bids)]
         for i in range(len(price_pass)):
             slots[i].set_price(price_pass[i])
-        # equivalent to:
-        # for key, slot in enumerate(slots):
-        #     # calculate a pass of vcg prices
-        #     if key < len(self.bids) - 1:
-        #         slot.price = slot.lost_ctr * self.bids[key + 1].cpc
 
         for key, slot in reversed(list(enumerate(slots))):
             # accumulate vcg price from bottom to top slots
@@ -77,25 +68,3 @@ class Auction:
         for slot in slots:
             if slot.win_bid >= slot.price:
                 slot.profit = slot.price
-
-
-        print([bid.cpc for bid in self.bids])
-        print([slot.lost_ctr for slot in slots])
-        print([slot.price for slot in slots])
-        print([slot.lost_ctr*self.bids[key+1].cpc for key, slot in enumerate(slots) if key < len(self.bids)-1])
-
-        # finalSlot=Slot()
-        # slots.append(finalSlot)
-        # while len(slots)<len(self.bids):
-        #     emptySlot=Slot()
-        #     slots.append(emptySlot)
-        # while len(self.bids)<=len(slots)-1:
-        #     emptyBid=Bid()
-        #     self.bids.append(emptyBid)
-        # for i in range(len(slots)-1):
-        #     slots[i].price=(slots[i].clickThruRate-slots[i+1].clickThruRate)*\
-        #                    (self.bids[i+1].value/slots[i+1].clickThruRate)
-        # last=len(slots)-1
-        # slots[last].price=slots[last].clickThruRate*self.bids[last+1].value/slots[last].clickThruRate
-        # for i in range(len(slots)-1):
-        #     slots[i].price+=slots[i+1].price

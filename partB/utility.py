@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import random
 import matplotlib.pyplot as plt
-from sklearn.metrics import roc_curve
+from sklearn.metrics import roc_curve, auc
 
 
 def import_data():
@@ -59,6 +59,7 @@ def log_loss(y, X, params):
     partB = np.dot(ones.ravel() - y.values, np.log(ones.ravel() - y_hat.ravel()))
     return -1 / len(y) * (partA + partB)
 
+
 config = {}
 config['loss'] = lr_mse_loss
 config['gradient_loss'] = lr_gradient_loss
@@ -68,9 +69,9 @@ config['convergence'] = 0.001
 config['batch_size'] = 1
 
 
-def sgd(data, c=config):
+def sgd(data, c):
     epoch = 0
-    fall_in_loss = 1000.0
+    fall_in_loss = 1000.0  # this is set to arbitrary high value so that the loop condition is satisfied at first run
     loss_over_epochs = []
     params_over_epochs = []
     params = np.zeros(shape=(57, 1), dtype=float)
@@ -81,7 +82,6 @@ def sgd(data, c=config):
         # calculate loss on full data:
         y, X = get_batch(data, indices, N, 0)
         loss_epoch_start = c['loss'](y, X, params)
-
         for n in range(n_of_batches):
             # obtain a batch at the nth position
             y, X = get_batch(data, indices, c['batch_size'], n)
@@ -92,11 +92,11 @@ def sgd(data, c=config):
         # calculate loss on full data again
         y, X = get_batch(data, indices, N, 0)
         loss_epoch_end = c['loss'](y, X, params)
-        print(loss_epoch_end)
+        print("Loss at end of an epoch: "+str(loss_epoch_end))
         # print(gradient_loss(y, X, params))
         loss_over_epochs.append(loss_epoch_end)
         params_over_epochs.append(params)
-        fall_in_loss = loss_epoch_start - loss_epoch_end
+        fall_in_loss = np.linalg.norm(loss_epoch_start) - np.linalg.norm(loss_epoch_end)
         epoch += 1
     return loss_over_epochs, params_over_epochs
 
@@ -113,7 +113,7 @@ def split_data(data, subsample_indices, excluded_subsample):
     return data.drop(labels=test_sample_indices, axis=0), data.iloc[test_sample_indices]
 
 
-def cv(raw_data, c=config):
+def cv(raw_data, c):
     index_ranges = custom_idx_ranges(raw_data)
     train_losses = []
     test_losses = []
@@ -121,7 +121,7 @@ def cv(raw_data, c=config):
     for i in range(0, len(index_ranges)):
         data_train, data_test = split_data(raw_data, index_ranges, i)
         losses, params = sgd(data_train, c=c)
-        train_loss_series = pd.DataFrame(losses)
+        train_loss_series = pd.Series(losses)
         df = pd.concat([df, train_loss_series], ignore_index=True, axis=1)
         test_loss = c['loss'](data_test.iloc[:, 57], data_test.iloc[:, 0:57], params[-1])
         best_train_loss = losses[-1]
@@ -145,6 +145,7 @@ def draw_roc(fpr, tpr):
     plt.plot(fpr, tpr)
     plt.xlabel("False Positive Rate")
     plt.ylabel("True Positive Rate")
+    plt.title("AUC: " + str(auc(fpr, tpr, reorder=True)))
     plt.show()
 
 
@@ -166,11 +167,7 @@ def collect_cv_results(raw_data, c=config):
         losses, params = sgd(data_train, c)
         sh_index = shuffle_index(data_test)
         y, X = get_batch(data_test, sh_index, data_test.shape[0], 0)
-        print(y.shape)
-        print(X.shape)
         yhat = pred(X, params[-1])
-        print(params[-1].shape)
-        print(yhat.shape)
         fpr, tpr, threshold = roc_curve(y, yhat)
         fpr = pd.DataFrame(fpr)
         tpr = pd.DataFrame(tpr)

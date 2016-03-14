@@ -34,14 +34,13 @@ def runAndPrint(filename):
 
     print("Auction for \"%s\" with %d slots and %d bidders" % (term, len(slots), len(bids)))
 
-    for slot in slots:
-        print("slot: %6.2f %8.2f %8.2f   %s" % (
-            float(slot.clickThruRate), float(slot.price), float(slot.profit), slot.bidder))
-    print("  <-- click through rates")
-    print(" ")
+    # for slot in slots:
+    #     print("slot: %6.2f %8.2f %8.2f   %s" % (
+    #         float(slot.clickThruRate), float(slot.price), float(slot.profit), slot.bidder))
+    # print("       <-- click through rates")
+    # print(" ")
 
     auction = Auction(term, bids)
-    # print ([bid.value for bid in auction.bids])
     for b in auction.bids:
         # print ("%s\t%s"%(b.value,b.name))
         print("bid:%6.2f %s" % (float(b.value), b.name))
@@ -65,9 +64,9 @@ def runAndPrint(filename):
 
 
 if __name__ == '__main__':
-    # runAndPrint("burgers.data.txt")
-    # runAndPrint("etaMeson.data.txt")
-    # runAndPrint("bicycleParts.data.txt")
-    # runAndPrint("bicyclePartsDup.data.txt")
-    # runAndPrint("jewelers5.data.txt")
+     runAndPrint("burgers.data.txt")
+     runAndPrint("etaMeson.data.txt")
+     runAndPrint("bicycleParts.data.txt")
+     runAndPrint("bicyclePartsDup.data.txt")
+     runAndPrint("jewelers5.data.txt")
      runAndPrint("jewelers8.data.txt")
