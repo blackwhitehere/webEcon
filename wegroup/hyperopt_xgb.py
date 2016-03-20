@@ -8,6 +8,7 @@ from hyperopt import fmin, tpe, hp, STATUS_OK, Trials
 import sys
 import xgboost as xgb
 
+
 def load_train():
     train = pd.read_csv('../data/train.csv')
     labels = train.target.values
@@ -48,19 +49,20 @@ def score(params):
 
 def optimize(trials):
     space = {
-             'n_estimators' : hp.quniform('n_estimators', 100, 500, 1),
-             'eta' : hp.quniform('eta', 0.025, 1, 0.025),
-             'max_depth' : hp.quniform('max_depth', 1, 13, 1),
-             'min_child_weight' : hp.quniform('min_child_weight', 1, 6, 1),
-             'subsample' : hp.quniform('subsample', 0.5, 1, 0.05),
-             'gamma' : hp.quniform('gamma', 0.1, 1, 0.1),
-             'colsample_bytree' : hp.quniform('colsample_bytree', 0.1, 1, 0.1),
-             'num_class' : 2,
-             'eval_metric': 'mlogloss',
-             'objective': 'multi:softprob',
-             'nthread' : 2,
-             'silent' : 1
-             }
+        'n_estimators': hp.quniform('n_estimators', 100, 500, 1),
+        'booster': 'gbtree',
+        'eta': hp.quniform('eta', 0.025, 1, 0.025),
+        'max_depth': hp.quniform('max_depth', 1, 13, 1),
+        'min_child_weight': hp.quniform('min_child_weight', 1, 6, 1),
+        'subsample': hp.quniform('subsample', 0.5, 1, 0.05),
+        'gamma': hp.quniform('gamma', 0.1, 1, 0.1),
+        'colsample_bytree': hp.quniform('colsample_bytree', 0.1, 1, 0.1),
+        'num_class': 2,
+        'eval_metric': 'mlogloss',
+        'objective': 'multi:softprob',
+        'nthread': 3,
+        'silent': 1
+    }
 
     best = fmin(score, space, algo=tpe.suggest, trials=trials, max_evals=250)
 
@@ -72,7 +74,7 @@ print("Splitting data into train and valid ...\n\n")
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=1234)
 
-#Trials object where the history of search will be stored
+# Trials object where the history of search will be stored
 trials = Trials()
 
 optimize(trials)
