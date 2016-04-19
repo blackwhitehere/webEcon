@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+from sklearn.decomposition import TruncatedSVD
 
 
 def import_tr_te(train_file_name, test_file_name, columns, data_folder):
@@ -36,8 +37,10 @@ def get_dummies(join, col):
 def tfidf(join, col='user_tags'):
     # use to convert user_tags to tfidf features
     tfidfvect = TfidfVectorizer()
-    tfidf = tfidfvect.fit_transform(join[col])
-    df = pd.DataFrame(tfidf.toarray(), columns=tfidfvect.vocabulary_)
+    tsvd = TruncatedSVD(n_components=10)
+    tfidf_fs = tfidfvect.fit_transform(join[col])
+    tfidf_fs = tsvd.fit_transform(tfidf_fs)
+    df = pd.DataFrame(tfidf_fs.toarray(), columns=tfidfvect.vocabulary_)
     df['id'] = join['id']
     return df
 
