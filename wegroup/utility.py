@@ -5,8 +5,8 @@ from sklearn.decomposition import TruncatedSVD
 
 
 def import_tr_te(train_file_name, test_file_name, columns, data_folder):
-    train = pd.read_csv(os.getcwd() + '/' + data_folder + '/' + train_file_name, header=None, names=columns, sep='\t')
-    test = pd.read_csv(os.getcwd() + '/' + data_folder + '/' + test_file_name, header=None, names=columns[1:], sep='\t')
+    train = pd.read_csv(os.getcwd() + '/' + data_folder + '/' + train_file_name, header=None, names=columns, sep='\t') #nrows=10000
+    test = pd.read_csv(os.getcwd() + '/' + data_folder + '/' + test_file_name, header=None, names=columns[1:], sep='\t') #nrows=10000
     return train, test
 
 
@@ -16,7 +16,7 @@ def draw_ct(join, response, factor):
     ndf = df.div(df.sum(1).astype(float), axis=0)
 
     ndf = ndf.sort(columns=[1, 0])
-    return ndf, ndf.plot(kind='bar', stacked=True, title=('Clicks by' + factor))
+    return ndf, ndf.plot(kind='bar', stacked=True, title=('Clicks by ' + factor))
 
 
 def count_vect(df_join, col):
@@ -29,19 +29,19 @@ def count_vect(df_join, col):
 
 
 def get_dummies(join, col):
-    df = pd.get_dummies(join[col])
-    df['id'] = join['id']
+    df = pd.get_dummies(join[col],prefix=col)
+    df.index = join.index
     return df
 
 
 def tfidf(join, col='user_tags'):
     # use to convert user_tags to tfidf features
     tfidfvect = TfidfVectorizer()
-    tsvd = TruncatedSVD(n_components=10)
+    tsvd = TruncatedSVD(n_components=5)
     tfidf_fs = tfidfvect.fit_transform(join[col])
     tfidf_fs = tsvd.fit_transform(tfidf_fs)
-    df = pd.DataFrame(tfidf_fs.toarray(), columns=tfidfvect.vocabulary_)
-    df['id'] = join['id']
+    df = pd.DataFrame(tfidf_fs, columns=['user_tags_'+str(x) for x in range(5)])
+    df.index = join.index
     return df
 
 
@@ -51,28 +51,40 @@ def split_user_agent(join, col='user_agent'):
     df = pd.DataFrame()
     df['sys'] = split.map(lambda x: x[0])
     df['browser'] = split.map(lambda x: x[1])
-    df['id'] = join['id']
+    df.index = join.index
     return df
 
 
 def split_timestamp(join, col='timestamp'):
     df = pd.DataFrame()
-    df['ty'] = join[col].map(lambda x: str(x)[0:4])
-    df['tm'] = join[col].map(lambda x: str(x)[4:6])
-    df['td'] = join[col].map(lambda x: str(x)[6:8])
-    df['id'] = join['id']
+    df['ty'] = join[col].map(lambda x: float(str(x)[0:4]))
+    df['tm'] = join[col].map(lambda x: float(str(x)[4:6]))
+    df['td'] = join[col].map(lambda x: float(str(x)[6:8]))
+    df.index = join.index
     return df
 
 
 def part_of_day(join, col='hour'):
     df = pd.DataFrame()
     df['h_binned'] = pd.cut(join[col], bins=6, labels=False)
-    df['id'] = join['id']
+    df.index = join.index
     return df
 
 
 def multiply(join, col1='height', col2='width'):
     df = pd.DataFrame()
     df['area'] = join[col1] * join[col2]
-    df['id'] = join['id']
+    df.index = join.index
     return df
+
+def cost_per_area(join):
+    df = pd.DataFrame()
+    df['cost_per_area']=join['price']/join['area']
+    df.index = join.index
+    return df
+
+def labelencode(df, f):
+    lbl = preprocessing.LabelEncoder()
+    lbl.fit(np.unique(list(df[f].values)))
+    df[f] = lbl.transform(list(df[f].values))
+    return df[f]

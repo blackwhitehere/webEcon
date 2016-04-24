@@ -49,12 +49,12 @@ def score(params):
 
 def optimize(trials):
     space = {
-        'n_estimators': hp.quniform('n_estimators', 100, 500, 1),
+        'n_estimators': hp.quniform('n_estimators', 1, 10, 1),
         'booster': 'gbtree',
         'eta': hp.quniform('eta', 0.025, 1, 0.025),
         'max_depth': hp.quniform('max_depth', 1, 13, 1),
         'min_child_weight': hp.quniform('min_child_weight', 1, 6, 1),
-        'subsample': hp.quniform('subsample', 0.5, 1, 0.05),
+        'subsample': hp.quniform('subsample', 0.4, 1, 0.2),
         'gamma': hp.quniform('gamma', 0.1, 1, 0.1),
         'colsample_bytree': hp.quniform('colsample_bytree', 0.1, 1, 0.1),
         'num_class': 2,
